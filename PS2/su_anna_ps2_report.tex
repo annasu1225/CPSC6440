@@ -1,0 +1,167 @@
+\documentclass[11pt]{article}
+
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath,amsfonts,amssymb, algorithm, algorithmic}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+\title{CPSC 6440 \\Problem Set 2 Report}
+\author{Anna Su}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Graph Neural Networks for Single-Cell Analysis}
+\subsection{Experiment with different values of k for graph construction and report how connectivity
+affects downstream performance.}
+
+As shown in Table \ref{tab:k_values}, as the k value increases, the loss also increases while the test accuracy slightly decreases. This suggests that a lower k value may lead to better model performance in this context.
+
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+    k value & Loss & Test Accuracy \\
+    \hline
+    3 & 0.07 & 0.97 \\
+    5 & 0.11 & 0.97 \\
+    10 & 0.18 & 0.97 \\
+    15 & 0.23 & 0.96 \\
+    25 & 0.39 & 0.94 \\
+    \hline
+    \end{tabular}
+    \caption{Effect of different k values on model performance}
+    \label{tab:k_values}
+    \end{table}
+
+\subsection{Visualize predicted vs. true expression for several genes by experimenting with different t
+values.}
+As shown in Table \ref{tab:t_values}, the MSE and correlation do not vary significantly with different 
+t values, indicating that the choice of t may not have a strong impact on imputation performance within 
+the tested range.
+
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+    t value & MSE & Correlation \\
+    \hline
+    3 & 0.10 & 0.96 \\
+    5 & 0.12 & 0.97 \\
+    10 & 0.12 & 0.97 \\
+    15 & 0.11 & 0.95 \\
+    30 & 0.08 & 0.98 \\
+    50 & 0.09 & 0.98 \\
+    \hline
+    \end{tabular}
+    \caption{Effect of different t values on imputation performance}
+    \label{tab:t_values}
+    \end{table}
+
+\subsection{How does graph connectivity (different k values) influence denoising quality?}
+Small k gives a sparser graph with higher variance denoising. but may fragment the graph if too small
+Larger k gives a denser graph with lower variance denoising. 
+However, too large of a k can lead to oversmoothing and loss 
+of important local structure in the data.
+
+\section{Implementing the PHATE Regularized Autoencoder}
+\subsection{Given that cellular data often contains noise, how would you adapt the model into a denoising
+autoencoder to better recover the underlying signal?}
+We can corrupt the original data with noise and training the autoencoder to map the corrupted version back 
+to the original, thereby learning robust features and denoising the data.
+
+
+\section{Implementing a Neural ODE to generate trajectories}
+\subsection{Experiment with the Neural ODE density loss by sweeping the k and hinge loss hyper-parameters and briefly report the effects.}
+As shown in Table \ref{tab:density_loss}, increasing the k value generally leads to an increase
+in density loss. Adjusting the hinge value also affects the density loss, with a 
+hinge value of 0.1 yielding the lowest loss in this experiment.
+
+    \begin{table}[h!]
+    \centering
+    \begin{tabular}{|c|c|c|}
+    \hline
+    k value & Hinge Value & Density Loss \\
+    \hline
+    5 & 0.01 & 0.08 \\
+    10 & 0.01 & 0.10 \\
+    15 & 0.01 & 0.12 \\
+    5 & 0.05 & 0.04 \\
+    5 & 0.1 & 0.02 \\
+    \hline
+    \end{tabular}
+    \caption{Effect of different k and hinge values on density loss}
+    \label{tab:density_loss}
+    \end{table}
+
+
+\subsection{What is unbalanced optimal transport, and how would you implement it in this system?
+Please provide a pseudocode or explanation.}
+UOT relaxes the mass conservation constraint of traditional OT, allowing for creation or destruction of mass.
+To implement it, we regularize the balanced OT by replacing the hard constraints with divergence
+and use Sinkhorn iterations to solve the resulting optimization problem. The python function is \texttt{ot.unbalanced.sinkhorn\_unbalanced}.
+
+\[
+\mathcal{L}_{\text{UOT}}(x, y)
+= \min_{\pi \ge 0}
+\langle M, \pi \rangle
++ \tau_1 \, D_{\mathrm{KL}}(\pi \mathbf{1} \,\|\, \mu)
++ \tau_2 \, D_{\mathrm{KL}}(\pi^{\top} \mathbf{1} \,\|\, \nu)
++ \varepsilon \, \mathrm{H}(\pi)
+\]
+
+\begin{algorithm}[H]
+\caption{Unbalanced Optimal Transport Loss: \texttt{ot\_loss(x, y)}}
+\begin{algorithmic}[1]
+    \REQUIRE $x$, $y$ 
+    \ENSURE $w_2$ (scalar OT cost)
+
+    \STATE \textbf{Step 1: Define uniform marginal weights}
+    \STATE $\mu \gets \frac{1}{n_{x}} \cdot \mathbf{1}_{n_{x}}$
+    \STATE $\nu \gets \frac{1}{n_{y}} \cdot \mathbf{1}_{n_{y}}$
+
+    \STATE \textbf{Step 2: Compute squared Euclidean ground-cost matrix}
+    \STATE $M \gets {||x, y||}^2_2$
+
+    \STATE \textbf{Step 3: Compute unbalanced Sinkhorn--KL optimal transport}
+    \STATE \textbf{Input parameters:} entropic regularization $\varepsilon$, marginal penalty $\tau$
+    \STATE $G \gets \text{SinkhornUnbalanced}(\mu, \nu, M, \varepsilon, \tau)$
+
+    \STATE \textbf{Step 4: Compute total transport cost}
+    \STATE $w_2 \gets \sum_{i,j} G_{ij} \cdot M_{ij}$
+
+    \STATE \textbf{Step 5: Return cost as PyTorch scalar}
+    \STATE \textbf{Output:} $w_2$
+
+\end{algorithmic}
+\end{algorithm}
+
+
+\subsection{How does the network learn manifold geodesics? Describe the losses and how they
+promote the computation of manifold geodesics.}
+The autoencoder maps data to a latent manifold and the neural ODE learns dynamics on this manifold. 
+The neural ODE learns a vector field on the tangent bundle of the manifold. The vector field is contrained 
+by the loss function which penalizes deviations from the geodesic. 
+
+The OT loss trains the neural ODE to find a vector field that pushes forward the initial 
+distribution to match the target distribution. The solution to this dynamic OT 
+problem is a set of trajectories that are minimal-energy geodesics under the \(W_{2}\) metric. 
+By minimizing this loss, the model is penalized for any deviations from this optimal, geodesic-like flow, 
+which encourages efficient, smooth trajectories.
+
+The energy loss directly penalizes the total kinetic energy of the learned transport paths, 
+promoting smoother and more efficient dynamics. 
+
+The density loss ensures that the neural ODE's learned dynamics respect the underlying probability 
+distribution of the data, thereby preserving the intrinsic manifold structure. 
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}
