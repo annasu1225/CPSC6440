@@ -17,9 +17,7 @@
 \title{Curvature-Guided Protein Design Using ESM3}
 
 \author{
-  Anna Su\thanks{Use footnote for providing further information
-    about author (webpage, alternative address)---\emph{not} for acknowledging
-    funding agencies.} \\
+  Anna Su\thanks{GitHub repository for the project can be found at \url{https://github.com/annasu1225/Molecular_Topology}.} \\
   Department of Computer Science\\
   Yale University\\
   New Haven, CT 06520 \\
@@ -32,23 +30,58 @@
 
 \section{What is the problem that you will be investigating?
 Why is it interesting?}
+This project will explore geometric and topological property-guided protein design, specifically, gaussian curvature and mathematical knot type.
+Property guided protein design attracted attention from the computational biology community due to its potential to create novel proteins with desired functions.
+Proteins with specific geometric and topological properties have been shown to exhibit unique stability and functionality characteristics.
+For example, proteins with high gaussian curvature regions may have enhanced binding capabilities, while knotted proteins can exhibit increased stability and resistance to degradation.
+By leveraging these properties, we can design proteins that are better suited for specific applications, such as drug delivery, enzyme catalysis, and material science.
+This project aims to develop a framework that integrates geometric and topological considerations into the protein design process, potentially leading to more effective and efficient design strategies.
 
 \section{What dataset(s) are you using? Is that sufficient?}
+For gaussian curvature-guided protein design, I will use the PDBBind v2020 dataset, which contains experimentally measured binding affinities for protein-ligand complexes along with their 3D structures.
+For knot type-guided protein design, I will use the KnotProt database, which contains a curated collection of knotted proteins along with their structural and functional annotations.
+Currently, both datasets appear to be sufficient for the scope of the project as they provide the necessary structural information and annotations.
 
 \section{What geometric/topological approach will you
 use/develop?}
+For gaussian curvature-guided protein design, I will compute the per face and per vertex gaussian curvature of the protein surface mesh. Detailed steps include:
+\begin{enumerate}
+    \item Generate a surface mesh of the protein using the MSMS algorithm from the 3D atomic coordinates
+    \item Calculate the gaussian curvature at each vertex using the second fundamental form of the surface
+\end{enumerate}
+
+For knot type-guided protein design, I will determine the knot type of the protein backbone using the Alexander polynomial invariant. Detailed steps include:
+\begin{enumerate}
+    \item Extract the protein backbone coordinates from the 3D structure
+    \item Simplify the backbone to a polygonal chain and project it onto a plane to obtain a knot diagram
+    \item Compute the Alexander polynomial from the knot diagram to classify the knot type
+\end{enumerate}
+
+The above properties will be integrated into ESM3 using derivative-free guidance.
 
 \section{What are anticipated challenges of this project?}
+
+\textbf{Challenge 1:} The computational complexity of calculating geometric and topological properties for large protein structures.
+To address this, I will explore efficient algorithms and parallel computing techniques to speed up the calculations.
+
+\textbf{Challenge 2:} Ensuring that the integration of geometric and topological properties into the protein design process does not compromise the overall stability and functionality of the designed proteins.
+To mitigate this, I will implement a multi-objective optimization approach that balances geometric/topological properties with traditional design criteria.
 
 \section{How will you evaluate your results?}
 \subsection{
 Qualitatively, what kind of results do you expect (e.g. plots or
 figures)?}
+\begin{enumerate}
+    \item Visualizations of designed protein structures with highlighted regions of high and low gaussian curvature.
+    \item Diagrams and videos showing the knot types of designed proteins, along with their corresponding Alexander polynomials.
+\end{enumerate}
 
 \subsection{Quantitatively, what kind of analysis will you use to evaluate
 and/or compare your results (e.g. what performance metrics or
 statistical tests)?}
-
-\subsection{Be concrete and specific}
+\begin{enumerate}
+    \item Statistics on the distribution of stability of designed knotted proteins compared to unknotted proteins. 
+    \item Correlation analysis between geometric/topological properties and binding affinities to identify potential design principles.
+\end{enumerate}
 
 \end{document}

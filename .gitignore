@@ -1,2 +1,4 @@
 .vscode/
 .DS_Store
+*.h*
+*tex_out/
