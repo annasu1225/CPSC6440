@@ -64,10 +64,8 @@ the tested range.
     \end{table}
 
 \subsection{How does graph connectivity (different k values) influence denoising quality?}
-Small k gives a sparser graph with higher variance denoising. but may fragment the graph if too small
-Larger k gives a denser graph with lower variance denoising. 
-However, too large of a k can lead to oversmoothing and loss 
-of important local structure in the data.
+Small k gives a sparser graph with higher variance denoising, but may fragment the graph if too small.
+Larger k gives a denser graph with lower variance denoising. However, too large of a k can lead to oversmoothing and loss of important local structure in the data.
 
 \section{Implementing the PHATE Regularized Autoencoder}
 \subsection{Given that cellular data often contains noise, how would you adapt the model into a denoising
@@ -79,8 +77,8 @@ to the original, thereby learning robust features and denoising the data.
 \section{Implementing a Neural ODE to generate trajectories}
 \subsection{Experiment with the Neural ODE density loss by sweeping the k and hinge loss hyper-parameters and briefly report the effects.}
 As shown in Table \ref{tab:density_loss}, increasing the k value generally leads to an increase
-in density loss. Adjusting the hinge value also affects the density loss, with a 
-hinge value of 0.1 yielding the lowest loss in this experiment.
+in density loss. Increasing hinge value decreases density loss. A k value of 5 and 
+hinge value of 0.1 yields the lowest loss in this experiment.
 
     \begin{table}[h!]
     \centering
@@ -104,7 +102,8 @@ hinge value of 0.1 yielding the lowest loss in this experiment.
 Please provide a pseudocode or explanation.}
 UOT relaxes the mass conservation constraint of traditional OT, allowing for creation or destruction of mass.
 To implement it, we regularize the balanced OT by replacing the hard constraints with divergence
-and use Sinkhorn iterations to solve the resulting optimization problem. The python function is \texttt{ot.unbalanced.sinkhorn\_unbalanced}.
+and use Sinkhorn iterations to solve the resulting optimization problem \cite{pmlr-v119-pham20a}. 
+The python function is \texttt{ot.unbalanced.sinkhorn\_unbalanced}.
 
 \[
 \mathcal{L}_{\text{UOT}}(x, y)
